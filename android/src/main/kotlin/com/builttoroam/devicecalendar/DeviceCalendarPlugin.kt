@@ -25,7 +25,6 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
     private var context: Context? = null
-    private var activity: Activity? = null
 
     // Methods
     private val REQUEST_PERMISSIONS_METHOD = "requestPermissions"
@@ -73,48 +72,48 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
     private val LOCAL_ACCOUNT_NAME_ARGUMENT = "localAccountName"
     private val EVENT_AVAILABILITY_ARGUMENT = "availability"
 
-    private lateinit var _calendarDelegate: CalendarDelegate
+    private var _calendarDelegate: CalendarDelegate? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL_NAME)
         channel.setMethodCallHandler(this)
+
+        _calendarDelegate = CalendarDelegate(null, context!!)
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        _calendarDelegate = null
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.activity
         _calendarDelegate = CalendarDelegate(binding, context!!)
-        binding.addRequestPermissionsResultListener(_calendarDelegate)
+        binding.addRequestPermissionsResultListener(_calendarDelegate!!)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        activity = null
+        _calendarDelegate = CalendarDelegate(null, context!!)
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        activity = binding.activity
         _calendarDelegate = CalendarDelegate(binding, context!!)
-        binding.addRequestPermissionsResultListener(_calendarDelegate)
+        binding.addRequestPermissionsResultListener(_calendarDelegate!!)
     }
 
     override fun onDetachedFromActivity() {
-        activity = null
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
             REQUEST_PERMISSIONS_METHOD -> {
-                _calendarDelegate.requestPermissions(result)
+                _calendarDelegate!!.requestPermissions(result)
             }
             HAS_PERMISSIONS_METHOD -> {
-                _calendarDelegate.hasPermissions(result)
+                _calendarDelegate!!.hasPermissions(result)
             }
             RETRIEVE_CALENDARS_METHOD -> {
-                _calendarDelegate.retrieveCalendars(result)
+                _calendarDelegate!!.retrieveCalendars(result)
             }
             RETRIEVE_EVENTS_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
@@ -122,19 +121,19 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val endDate = call.argument<Long>(END_DATE_ARGUMENT)
                 val eventIds = call.argument<List<String>>(EVENT_IDS_ARGUMENT) ?: listOf()
 
-                _calendarDelegate.retrieveEvents(calendarId!!, startDate, endDate, eventIds, result)
+                _calendarDelegate!!.retrieveEvents(calendarId!!, startDate, endDate, eventIds, result)
             }
             CREATE_OR_UPDATE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
                 val event = parseEventArgs(call, calendarId)
 
-                _calendarDelegate.createOrUpdateEvent(calendarId!!, event, result)
+                _calendarDelegate!!.createOrUpdateEvent(calendarId!!, event, result)
             }
             DELETE_EVENT_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
                 val eventId = call.argument<String>(EVENT_ID_ARGUMENT)
 
-                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result)
+                _calendarDelegate!!.deleteEvent(calendarId!!, eventId!!, result)
             }
             DELETE_EVENT_INSTANCE_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
@@ -143,18 +142,18 @@ class DeviceCalendarPlugin() : FlutterPlugin, MethodCallHandler, ActivityAware {
                 val endDate = call.argument<Long>(EVENT_END_DATE_ARGUMENT)
                 val followingInstances = call.argument<Boolean>(FOLLOWING_INSTANCES)
 
-                _calendarDelegate.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
+                _calendarDelegate!!.deleteEvent(calendarId!!, eventId!!, result, startDate, endDate, followingInstances)
             }
             CREATE_CALENDAR_METHOD -> {
                 val calendarName = call.argument<String>(CALENDAR_NAME_ARGUMENT)
                 val calendarColor = call.argument<String>(CALENDAR_COLOR_ARGUMENT)
                 val localAccountName = call.argument<String>(LOCAL_ACCOUNT_NAME_ARGUMENT)
 
-                _calendarDelegate.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
+                _calendarDelegate!!.createCalendar(calendarName!!, calendarColor, localAccountName!!, result)
             }
             DELETE_CALENDAR_METHOD -> {
                 val calendarId = call.argument<String>(CALENDAR_ID_ARGUMENT)
-                _calendarDelegate.deleteCalendar(calendarId!!,result)
+                _calendarDelegate!!.deleteCalendar(calendarId!!,result)
             }
             else -> {
                 result.notImplemented()

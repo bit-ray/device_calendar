@@ -484,8 +484,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
             calendarEnd.set(java.util.Calendar.SECOND, 0)
             calendarEnd.set(java.util.Calendar.MILLISECOND, 0)
 
-            values.put(Events.DTSTART, calendar.timeInMillis)
-            values.put(Events.DTEND, calendar.timeInMillis)
+            values.put(Events.DTSTART, calendarStart.timeInMillis)
+            values.put(Events.DTEND, calendarEnd.timeInMillis)
             values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
         } else {
             values.put(Events.DTSTART, event.start!!)
@@ -658,6 +658,10 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
     }
 
     private fun arePermissionsGranted(): Boolean {
+        if (_binding == null) {
+            return true
+        }
+
         if (atLeastAPI(23)) {
             val writeCalendarPermissionGranted = _binding!!.activity.checkSelfPermission(Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
             val readCalendarPermissionGranted = _binding!!.activity.checkSelfPermission(Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
