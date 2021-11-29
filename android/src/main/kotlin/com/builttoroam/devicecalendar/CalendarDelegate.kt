@@ -486,7 +486,8 @@ class CalendarDelegate : PluginRegistry.RequestPermissionsResultListener {
 
             values.put(Events.DTSTART, calendarStart.timeInMillis)
             values.put(Events.DTEND, calendarEnd.timeInMillis)
-            values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
+            values.put(Events.EVENT_TIMEZONE, "UTC")
+            values.put(Events.EVENT_END_TIMEZONE, "UTC")
         } else {
             values.put(Events.DTSTART, event.start!!)
             values.put(Events.EVENT_TIMEZONE, getTimeZone(event.startTimeZone).id)
